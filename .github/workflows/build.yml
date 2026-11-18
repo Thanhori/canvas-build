@@ -1,0 +1,22 @@
+name: Build Canvas 1.20.4
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: CraftCanvasMC/Canvas
+          ref: 2f58680f
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: git config --global user.email "a@a.com" && git config --global user.name "builder"
+      - run: ./gradlew applyPatches --no-daemon
+      - run: ./gradlew build --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: canvas-1.20.4
+          path: "**/build/libs/*.jar"
