@@ -15,8 +15,9 @@ jobs:
           java-version: 17
       - run: git config --global user.email "a@a.com" && git config --global user.name "builder"
       - run: ./gradlew applyPatches --no-daemon
-      - run: ./gradlew build --no-daemon
+      - run: ./gradlew createCanvasServer -x test --no-daemon
       - uses: actions/upload-artifact@v4
         with:
           name: canvas-1.20.4
-          path: "**/build/libs/*.jar"
+          path: target/*.jar
+          if-no-files-found: error
