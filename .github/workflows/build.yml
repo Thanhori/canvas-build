@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: CraftCanvasMC/Canvas
-          ref: 2f58680f
+          ref: 2f58680f4c25c32344847cb10388d2d12ee69269
           fetch-depth: 0
       - uses: actions/setup-java@v4
         with:
