@@ -1,4 +1,4 @@
-name: Build Canvas 1.20.4
+name: Build Lapas 1.20.4
 on: workflow_dispatch
 
 jobs:
@@ -24,8 +24,9 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
             .gradle
-          key: gradle-canvas-${{ github.run_id }}
+          key: gradle-lapas-${{ github.run_id }}
           restore-keys: |
+            gradle-lapas-
             gradle-canvas-
 
       - name: Git config
@@ -33,7 +34,28 @@ jobs:
           git config --global user.email "a@a.com"
           git config --global user.name "builder"
 
-      # Them Forge Maven cho MOI project (can cho cpw.mods:modlauncher:8.1.3)
+      # ===== ĐỔI TÊN Canvas -> Lapas (giữ nguyên URL upstream) =====
+      - name: Rename Canvas -> Lapas
+        run: |
+          git ls-files -z | grep -zv -E '^\.github/|\.(png|jar|zip|gif|ico)$' | xargs -0 -r sed -i \
+            -e 's#CraftCanvasMC/Canvas#@@CCREPO@@#g' \
+            -e 's#CraftCanvasMC#@@CCMC@@#g' \
+            -e 's#canvas\.kesug\.com#@@CCSITE@@#g' \
+            -e 's/canvas/lapas/g' \
+            -e 's/Canvas/Lapas/g' \
+            -e 's/CANVAS/LAPAS/g' \
+            -e 's#@@CCREPO@@#CraftCanvasMC/Canvas#g' \
+            -e 's#@@CCMC@@#CraftCanvasMC#g' \
+            -e 's#@@CCSITE@@#canvas.kesug.com#g'
+          git ls-files | grep -i canvas | grep -v '^\.github/' | while read -r f; do
+            n="$(echo "$f" | sed -e 's/canvas/lapas/g' -e 's/Canvas/Lapas/g' -e 's/CANVAS/LAPAS/g')"
+            [ "$f" != "$n" ] && mkdir -p "$(dirname "$n")" && git mv "$f" "$n"
+          done
+          find . -depth -type d -empty -not -path "./.git/*" -delete
+          git add -A
+          git commit -qm "Rename Canvas to Lapas"
+          echo "Còn sót:"; git grep -I -n -i canvas -- . ':!.github' | grep -v -E 'CraftCanvasMC|canvas\.kesug\.com' || echo "  (không còn)"
+
       - name: Add Forge Maven via Gradle init script
         run: |
           mkdir -p ~/.gradle/init.d
@@ -44,12 +66,9 @@ jobs:
             }
           }
           INIT
-          cat ~/.gradle/init.d/forge.gradle
 
       - name: Fix dead jcenter repo
-        run: |
-          sed -i 's|jcenter()|mavenCentral()|g' build.gradle.kts
-          grep -n "jcenter\|mavenCentral" build.gradle.kts || true
+        run: sed -i 's|jcenter()|mavenCentral()|g' build.gradle.kts
 
       - name: Apply patches (retry 5 lan)
         run: |
@@ -62,10 +81,10 @@ jobs:
           exit 1
 
       - name: Build server jar
-        run: ./gradlew createCanvasServer -x test --no-daemon
+        run: ./gradlew createLapasServer -x test --no-daemon
 
       - uses: actions/upload-artifact@v4
         with:
-          name: canvas-1.20.4
+          name: lapas-1.20.4
           path: target/*.jar
           if-no-files-found: error
