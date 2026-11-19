@@ -20,10 +20,23 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Normalize Gradle wrapper
+        run: |
+          set -euo pipefail
+          echo "pwd=$(pwd)"
+          ls -la
+          if [ ! -f ./gradlew ]; then
+            echo "gradlew missing"
+            find . -name gradlew -maxdepth 4 -print
+            exit 1
+          fi
+          sed -i 's/\r$//' ./gradlew
+          chmod +x ./gradlew
+          ./gradlew --version --no-daemon
+
       - name: Diagnose Gradle tasks
         run: |
           set +e
-          chmod +x ./gradlew
           ./gradlew tasks --all --no-daemon > tasks.txt
           echo "===== root project name ====="
           grep -n "rootProject.name" settings.gradle.kts || true
